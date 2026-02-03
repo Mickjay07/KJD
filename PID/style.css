@@ -1,0 +1,103 @@
+:root {
+    --bg-color: #000000;
+    --text-primary: #ffff00;
+    /* Yellow for high contrast headers */
+    --text-secondary: #ffffff;
+    /* White for times */
+    --text-route: #00ffff;
+    /* Cyan for route numbers */
+    --text-alert: #ff0000;
+    /* Red for urgent */
+}
+
+* {
+    box-sizing: border_box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-secondary);
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    /* Prevent scrolling */
+    cursor: none;
+    /* Hide cursor for kiosk feel */
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+#header-title {
+    color: var(--text-primary);
+    font-size: 5vh;
+    /* Responsive font size */
+    text-transform: uppercase;
+}
+
+#departures-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.departure-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 6vh;
+    /* Big text for readability */
+    border-bottom: 1px solid #222;
+    padding-bottom: 5px;
+}
+
+.route-name {
+    color: var(--text-route);
+    font-weight: bold;
+    width: 20%;
+    /* Fixed width for alignment */
+}
+
+.time-left {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.time-urgent {
+    color: var(--text-alert);
+}
+
+footer {
+    text-align: center;
+    font-size: 2vh;
+    color: #666;
+    margin-top: 10px;
+}
+
+/* Error state */
+.error {
+    color: var(--text-alert);
+    text-align: center;
+    font-size: 3vh;
+}
+
+.no-data {
+    color: #888;
+    text-align: center;
+    font-size: 4vh;
+    margin-top: 20%;
+}

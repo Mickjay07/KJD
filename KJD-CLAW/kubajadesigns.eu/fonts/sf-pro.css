@@ -1,0 +1,61 @@
+/* SF Pro Font CSS */
+@font-face {
+  font-family: 'SF Pro Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('SF Pro Display Font/SFPRODISPLAYREGULAR.OTF') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('SF Pro Display Font/SFPRODISPLAYMEDIUM.OTF') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('SF Pro Display Font/SFPRODISPLAYSEMIBOLDITALIC.OTF') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('SF Pro Display Font/SFPRODISPLAYBOLD.OTF') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('SF Pro Display Font/SFPRODISPLAYBLACKITALIC.OTF') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Compact Text';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('SF Compact Text Font/sf-compact-text-italic-58646f7cbab10.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'SF Compact Text';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('SF Compact Text Font/sf-compact-text-heavy-58646f645b774.otf') format('opentype');
+}
+
+/* Fallback to system fonts if SF Pro is not available */
+body, .btn, .form-control, .nav-link, h1, h2, h3, h4, h5, h6 {
+  font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

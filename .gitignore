@@ -1,0 +1,4 @@
+uploads/
+vendor/
+*.log
+.DS_Store
