@@ -89,7 +89,7 @@ try {
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <!-- KJD Premium Admin CSS -->
-    <link rel="stylesheet" href="css/kjd_admin_v2.css">
+    <link rel="stylesheet" href="css/kjd_admin_v2.css?v=<?php echo time(); ?>">
     <!-- Fonts -->
     <link rel="stylesheet" href="../fonts/sf-pro.css">
     <!-- Chart.js -->
@@ -109,7 +109,7 @@ try {
         <!-- Topbar -->
         <div class="topbar glass-effect sticky-top">
             <div class="d-flex align-items-center">
-                <h1 class="page-title h4 mb-0 fw-bold">Přehled</h1>
+                <h1 class="page-title h4 mb-0 fw-bold">Přehled <small class="text-muted fs-6 fw-normal">(v2.1)</small></h1>
                 <span class="text-muted ms-3 small d-none d-md-block"><?php echo date('j. n. Y'); ?></span>
             </div>
             
