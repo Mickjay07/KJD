@@ -67,8 +67,8 @@ try {
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $totalRevenue = $result['revenue'] ? floatval($result['revenue']) : 0;
         
-        // Poslední objednávky pro tabulku
-        $stmt = $conn->prepare("SELECT id, order_id, name, email, total_price, payment_status, created_at FROM orders ORDER BY created_at DESC LIMIT 5");
+        // Poslední objednávky pro tabulku a graf (zvýšeno na 10 pro lepší graf)
+        $stmt = $conn->prepare("SELECT id, order_id, name, email, total_price, payment_status, created_at FROM orders ORDER BY created_at DESC LIMIT 10");
         $stmt->execute();
         $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -83,7 +83,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KJD Administrace</title>
+    <title>KJD Dashboard</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -92,6 +92,8 @@ try {
     <link rel="stylesheet" href="css/kjd_admin_v2.css">
     <!-- Fonts -->
     <link rel="stylesheet" href="../fonts/sf-pro.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -102,15 +104,47 @@ try {
     </div>
 
     <!-- Main Content -->
-    <div class="flex-grow-1" style="min-height: 100vh; display: flex; flex-direction: column;">
+    <div class="flex-grow-1 bg-light-subtle" style="min-height: 100vh; display: flex; flex-direction: column;">
         
         <!-- Topbar -->
-        <div class="topbar">
-            <h1 class="page-title"><i class="fas fa-tachometer-alt me-2 text-muted"></i>Dashboard</h1>
+        <div class="topbar glass-effect sticky-top">
+            <div class="d-flex align-items-center">
+                <h1 class="page-title h4 mb-0 fw-bold">Přehled</h1>
+                <span class="text-muted ms-3 small d-none d-md-block"><?php echo date('j. n. Y'); ?></span>
+            </div>
+            
             <div class="d-flex align-items-center gap-3">
-                <a href="../index.php" target="_blank" class="btn btn-kjd-outline btn-sm">
-                    <i class="fas fa-external-link-alt me-2"></i>Přejít na web
+                <div class="dropdown">
+                    <button class="btn btn-icon rounded-circle position-relative" type="button" data-bs-toggle="dropdown">
+                        <i class="far fa-bell fa-lg text-secondary"></i>
+                        <?php if($notificationCount > 0): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light p-1">
+                                <span class="visually-hidden">Upozornění</span>
+                            </span>
+                        <?php endif; ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-0 overflow-hidden" style="width: 300px;">
+                        <li class="p-3 bg-light border-bottom"><h6 class="dropdown-header p-0 text-dark fw-bold">Upozornění</h6></li>
+                        <?php if($notificationCount > 0): ?>
+                            <li><a class="dropdown-item p-3 text-wrap" href="admin_manage_colors.php">
+                                <div class="d-flex align-items-center text-danger">
+                                    <i class="fas fa-exclamation-circle me-3 fa-lg"></i>
+                                    <div>
+                                        <span class="d-block fw-bold">Nízký stav skladu</span>
+                                        <span class="small text-muted"><?php echo $notificationCount; ?> barev vyžaduje pozornost</span>
+                                    </div>
+                                </div>
+                            </a></li>
+                        <?php else: ?>
+                            <li><div class="p-4 text-center text-muted small">Žádná nová upozornění</div></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                
+                <a href="../index.php" target="_blank" class="btn btn-kjd-outline btn-sm rounded-pill px-3">
+                    <i class="fas fa-external-link-alt me-2"></i>Web
                 </a>
+                
                 <!-- Mobile Toggle -->
                 <button class="btn btn-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                     <i class="fas fa-bars"></i>
@@ -119,7 +153,7 @@ try {
         </div>
 
         <!-- Content Container -->
-        <div class="container-fluid px-4 pb-5">
+        <div class="container-fluid px-4 py-4">
             
             <?php if ($apiError): ?>
             <div class="alert alert-warning mb-4 shadow-sm border-0 rounded-3">
@@ -127,18 +161,50 @@ try {
             </div>
             <?php endif; ?>
 
+            <!-- Welcome Section -->
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-8">
+                    <h2 class="h3 fw-bold text-dark-green mb-1">Vítej zpět, Jakube! 👋</h2>
+                    <p class="text-muted mb-0">Tady je přehled toho nejdůležitějšího za dnešek.</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="admin_invoice_create.php" class="btn btn-kjd shadow-sm me-2"><i class="fas fa-plus me-2"></i>Faktura</a>
+                    <a href="admin_novy_produkt.php" class="btn btn-white border shadow-sm"><i class="fas fa-box me-2"></i>Produkt</a>
+                </div>
+            </div>
+
             <!-- Stats Row -->
             <div class="row g-4 mb-4">
-                <!-- Orders Card -->
-                <div class="col-md-3">
-                    <div class="kjd-card stat-card">
-                        <div>
-                            <div class="stat-value"><?php echo $orderCount; ?></div>
-                            <div class="stat-label">Objednávek</div>
-                            <small class="text-muted mt-1 d-block">
-                                <span class="badge bg-warning text-dark me-1"><?php echo $pendingOrderCount ?? 0; ?> čeká</span>
-                                <span class="badge bg-success"><?php echo $completedOrderCount ?? 0; ?> hotovo</span>
+                <!-- Revenue Card -->
+                <div class="col-md-4">
+                    <div class="kjd-card stat-card bg-gradient-gold text-white h-100 border-0 overflow-hidden position-relative">
+                        <div class="position-relative z-1">
+                            <div class="stat-label text-white-50 mb-1">Celkové tržby</div>
+                            <div class="stat-value text-white mb-0"><?php echo number_format($totalRevenue, 0, ',', ' '); ?> Kč</div>
+                            <small class="text-white-50 mt-2 d-block">
+                                <i class="fas fa-check-circle me-1"></i> Uhrazené objednávky
                             </small>
+                        </div>
+                        <div class="stat-icon-bg opacity-25">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Card -->
+                <div class="col-md-4">
+                    <div class="kjd-card stat-card h-100 border-0">
+                        <div>
+                            <div class="stat-label mb-1">Objednávky</div>
+                            <div class="stat-value"><?php echo $orderCount; ?></div>
+                            <div class="mt-2">
+                                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1 me-1">
+                                    <?php echo $pendingOrderCount ?? 0; ?> čeká
+                                </span>
+                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-2 py-1">
+                                    <?php echo $completedOrderCount ?? 0; ?> hotovo
+                                </span>
+                            </div>
                         </div>
                         <div class="stat-icon bg-icon-orders">
                             <i class="fas fa-shopping-bag"></i>
@@ -146,152 +212,253 @@ try {
                     </div>
                 </div>
 
-                <!-- Revenue Card -->
-                <div class="col-md-3">
-                    <div class="kjd-card stat-card">
+                <!-- Average Value / Products Mix -->
+                <div class="col-md-4">
+                    <div class="kjd-card stat-card h-100 border-0">
                         <div>
-                            <div class="stat-value text-success"><?php echo number_format($totalRevenue, 0, ',', ' '); ?></div>
-                            <div class="stat-label">Tržby (Kč)</div>
-                            <small class="text-muted mt-1 d-block">Pouze uhrazené</small>
-                        </div>
-                        <div class="stat-icon bg-icon-revenue">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Card -->
-                <div class="col-md-3">
-                    <div class="kjd-card stat-card">
-                        <div>
-                            <div class="stat-value"><?php echo ($productCount + $product2Count); ?></div>
-                            <div class="stat-label">Produktů</div>
-                            <small class="text-muted mt-1 d-block">
-                                <?php echo $productCount; ?> standard + <?php echo $product2Count; ?> variace
+                            <div class="stat-label mb-1">Průměrná objednávka</div>
+                            <div class="stat-value">
+                                <?php echo ($orderCount > 0) ? number_format($totalRevenue / $completedOrderCount, 0, ',', ' ') : 0; ?> Kč
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                <?php echo ($productCount + $product2Count); ?> aktivních produktů
                             </small>
                         </div>
                         <div class="stat-icon bg-icon-products">
-                            <i class="fas fa-box-open"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                 <!-- Notifications Card -->
-                <div class="col-md-3">
-                    <div class="kjd-card stat-card">
-                        <div>
-                            <div class="stat-value text-danger"><?php echo $notificationCount; ?></div>
-                            <div class="stat-label">Notifikace</div>
-                            <small class="text-muted mt-1 d-block">Žádosti o barvu</small>
-                        </div>
-                        <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: #dc3545;">
-                            <i class="fas fa-bell"></i>
+                            <i class="fas fa-chart-pie"></i>
                         </div>
                     </div>
                 </div>
             </div>
-
+            
             <div class="row g-4">
-                <!-- Recent Orders Table -->
+                <!-- Chart Section -->
                 <div class="col-lg-8">
-                    <div class="kjd-card h-100">
+                    <div class="kjd-card h-100 border-0 shadow-sm p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="h5 mb-0">Poslední objednávky</h3>
-                            <a href="admin_orders.php" class="btn btn-sm btn-kjd-outline">Všechny objednávky</a>
+                            <h5 class="fw-bold mb-0">Vývoj tržeb</h5>
+                            <span class="badge bg-light text-muted">Posledních 10 objednávek</span>
                         </div>
-                        
-                        <div class="table-responsive table-container">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Zákazník</th>
-                                        <th>Částka</th>
-                                        <th>Stav</th>
-                                        <th class="text-end">Akce</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (!empty($recentOrders)): ?>
-                                        <?php foreach ($recentOrders as $order): ?>
-                                            <tr>
-                                                <td class="fw-bold">#<?php echo htmlspecialchars($order['order_id'] ?? $order['id']); ?></td>
-                                                <td>
-                                                    <div class="fw-bold"><?php echo htmlspecialchars($order['name']); ?></div>
-                                                    <div class="small text-muted"><?php echo htmlspecialchars($order['email']); ?></div>
-                                                </td>
-                                                <td class="fw-bold"><?php echo number_format(floatval($order['total_price']), 0, ',', ' '); ?> Kč</td>
-                                                <td>
-                                                    <?php 
-                                                    $status = $order['payment_status'];
-                                                    $badgeClass = ($status == 'paid') ? 'badge-paid' : (($status == 'pending') ? 'badge-pending' : 'badge-cancelled');
-                                                    $statusText = ($status == 'paid') ? 'Zaplaceno' : (($status == 'pending') ? 'Čeká na platbu' : 'Zrušeno');
-                                                    ?>
-                                                    <span class="badge badge-pill <?php echo $badgeClass; ?>">
-                                                        <?php echo $statusText; ?>
-                                                    </span>
-                                                </td>
-                                                <td class="text-end">
-                                                    <a href="admin_order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light text-muted border">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr><td colspan="5" class="text-center py-4 text-muted">Žádné objednávky</td></tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
+                <!-- Notifications / Stock -->
                 <div class="col-lg-4">
-                    <div class="kjd-card h-100">
-                        <h3 class="h5 mb-4">Rychlé akce</h3>
-                        <div class="d-grid gap-3">
-                            <a href="novy_produkt.php" class="btn btn-kjd text-start p-3 d-flex align-items-center">
-                                <i class="fas fa-plus-circle fa-lg me-3"></i>
-                                <div>
-                                    <div class="fw-bold">Přidat produkt</div>
-                                    <small style="opacity: 0.8">Vytvořit novou položku v e-shopu</small>
+                    <div class="kjd-card h-100 border-0 shadow-sm p-0 overflow-hidden">
+                        <div class="p-4 border-bottom bg-light-subtle">
+                            <h5 class="fw-bold mb-0">Sklad a systém</h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <?php if ($notificationCount > 0): ?>
+                                <a href="admin_manage_colors.php" class="list-group-item list-group-item-action p-3 d-flex align-items-center border-start border-4 border-danger">
+                                    <div class="bg-danger-subtle text-danger rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-exclamation"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-danger">Chybí materiál</div>
+                                        <div class="small text-muted"><?php echo $notificationCount; ?> variant potřebuje doplnit.</div>
+                                    </div>
+                                </a>
+                            <?php else: ?>
+                                <div class="list-group-item p-4 text-center text-muted border-0">
+                                    <div class="mb-2"><i class="fas fa-check-circle fa-2x text-success opacity-25"></i></div>
+                                    <p class="mb-0 small">Skladové zásoby jsou v pořádku.</p>
                                 </div>
-                            </a>
-                            <a href="manage_colors.php" class="btn btn-light text-start p-3 d-flex align-items-center border">
-                                <i class="fas fa-palette fa-lg me-3 text-muted"></i>
-                                <div>
-                                    <div class="fw-bold text-dark">Správa barev</div>
-                                    <small class="text-muted">Editace dostupných filamentů</small>
+                            <?php endif; ?>
+                            
+                            <div class="list-group-item p-3 d-flex align-items-center">
+                                <div class="bg-primary-subtle text-primary rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-server"></i>
                                 </div>
-                            </a>
-                            <a href="admin_newsletter.php" class="btn btn-light text-start p-3 d-flex align-items-center border">
-                                <i class="fas fa-paper-plane fa-lg me-3 text-muted"></i>
                                 <div>
-                                    <div class="fw-bold text-dark">Newsletter</div>
-                                    <small class="text-muted">Poslat e-mail zákazníkům</small>
+                                    <div class="fw-bold">Databáze</div>
+                                    <div class="small text-muted">Připojeno (<?php echo count($tables); ?> tabulek)</div>
                                 </div>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </div> <!-- End container -->
-    </div> <!-- End Main Content -->
-</div> <!-- End Flex wrapper -->
+            <!-- Recent Orders Table -->
+            <div class="kjd-card mt-4 border-0 shadow-sm overflow-hidden">
+                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Nedávné objednávky</h5>
+                    <a href="admin_orders.php" class="btn btn-sm btn-light fw-medium">Zobrazit vše</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Zákazník</th>
+                                <th>Datum</th>
+                                <th>Částka</th>
+                                <th>Stav</th>
+                                <th>Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (count($recentOrders) > 0): ?>
+                                <?php foreach ($recentOrders as $order): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-dark">#<?php echo $order['id']; ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-3 bg-light text-secondary small fw-bold d-flex align-items-center justify-content-center rounded-circle" style="width: 35px; height: 35px;">
+                                                <?php echo substr($order['name'] ?? '?', 0, 1); ?>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium text-dark"><?php echo htmlspecialchars($order['name'] ?? 'Neznámý'); ?></div>
+                                                <div class="small text-muted" style="font-size: 0.8rem;"><?php echo htmlspecialchars($order['email'] ?? ''); ?></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small">
+                                        <?php echo date('d.m.Y', strtotime($order['created_at'])); ?><br>
+                                        <span class="text-muted opacity-75"><?php echo date('H:i', strtotime($order['created_at'])); ?></span>
+                                    </td>
+                                    <td class="fw-bold text-dark">
+                                        <?php echo number_format($order['total_price'] ?? 0, 0, ',', ' '); ?> Kč
+                                    </td>
+                                    <td>
+                                        <?php 
+                                            $statusClass = 'bg-secondary-subtle text-secondary';
+                                            $statusText = $order['status'] ?? 'Neznámý';
+                                            $paymentStatus = $order['payment_status'] ?? 'pending';
+                                            
+                                            // Jednoduchá logika pro badge
+                                            if ($paymentStatus == 'paid') { 
+                                                $statusClass = 'bg-success-subtle text-success'; 
+                                                $statusText = 'Zaplaceno'; 
+                                            } elseif ($paymentStatus == 'pending') { 
+                                                $statusClass = 'bg-warning-subtle text-warning-emphasis'; 
+                                                $statusText = 'Čeká na platbu'; 
+                                            } elseif ($statusText == 'cancelled') { 
+                                                $statusClass = 'bg-danger-subtle text-danger'; 
+                                                $statusText = 'Zrušeno'; 
+                                            }
+                                        ?>
+                                        <span class="badge <?php echo $statusClass; ?> rounded-pill fw-normal px-3 py-2">
+                                            <?php echo $statusText; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="admin_order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-light border-0 text-muted hover-dark">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Zatím žádné objednávky.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-<!-- Offcanvas Sidebar for Mobile -->
-<div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="mobileSidebar">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title">KJD Admin</h5>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Sidebar Offcanvas (Keep existing or update) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header bg-dark text-white">
+        <h5 class="offcanvas-title">Menu</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body p-0">
+    <div class="offcanvas-body p-0 bg-dark">
         <?php include 'admin_sidebar_v2.php'; ?>
     </div>
 </div>
+
+<!-- Chart JS Init -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueChart');
+    if (ctx) {
+        // Data from PHP
+        const orderData = <?php echo json_encode(array_reverse($recentOrders)); ?>;
+        
+        // Prepare chart data
+        const labels = orderData.map(o => {
+            const date = new Date(o.created_at);
+            return date.getDate() + '.' + (date.getMonth() + 1) + '.';
+        });
+        const dataPoints = orderData.map(o => o.total_price);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Hodnota objednávky (Kč)',
+                    data: dataPoints,
+                    borderColor: '#8A6240',
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, 'rgba(138, 98, 64, 0.2)');
+                        gradient.addColorStop(1, 'rgba(138, 98, 64, 0.0)');
+                        return gradient;
+                    },
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#8A6240',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#8A6240',
+                    pointHoverBorderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#102820',
+                        titleColor: '#CABA9C',
+                        bodyColor: '#ffffff',
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' Kč';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 4], color: '#f0f0f0' },
+                        ticks: { 
+                            font: { family: "'SF Pro Display', sans-serif", size: 11 },
+                            callback: function(value) { return value + ' Kč'; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: "'SF Pro Display', sans-serif", size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
