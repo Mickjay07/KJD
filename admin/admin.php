@@ -107,7 +107,7 @@ try {
     <div class="flex-grow-1 bg-light-subtle" style="min-height: 100vh; display: flex; flex-direction: column;">
         
         <!-- Topbar -->
-        <div class="topbar glass-effect sticky-top">
+        <div class="topbar glass-effect glass-panel sticky-top">
             <div class="d-flex align-items-center">
                 <h1 class="page-title h4 mb-0 fw-bold">Přehled <small class="text-muted fs-6 fw-normal">(v2.1)</small></h1>
                 <span class="text-muted ms-3 small d-none d-md-block"><?php echo date('j. n. Y'); ?></span>
@@ -153,7 +153,7 @@ try {
         </div>
 
         <!-- Content Container -->
-        <div class="container-fluid px-4 py-4">
+        <div class="container-fluid page-shell">
             
             <?php if ($apiError): ?>
             <div class="alert alert-warning mb-4 shadow-sm border-0 rounded-3">
@@ -193,7 +193,7 @@ try {
 
                 <!-- Orders Card -->
                 <div class="col-md-4">
-                    <div class="kjd-card stat-card h-100 border-0">
+                    <div class="kjd-card stat-card h-100 border-0 glass-panel">
                         <div>
                             <div class="stat-label mb-1">Objednávky</div>
                             <div class="stat-value"><?php echo $orderCount; ?></div>
@@ -214,7 +214,7 @@ try {
 
                 <!-- Average Value / Products Mix -->
                 <div class="col-md-4">
-                    <div class="kjd-card stat-card h-100 border-0">
+                    <div class="kjd-card stat-card h-100 border-0 glass-panel">
                         <div>
                             <div class="stat-label mb-1">Průměrná objednávka</div>
                             <div class="stat-value">
@@ -234,7 +234,7 @@ try {
             <div class="row g-4">
                 <!-- Chart Section -->
                 <div class="col-lg-8">
-                    <div class="kjd-card h-100 border-0 shadow-sm p-4">
+                    <div class="kjd-card h-100 border-0 shadow-sm p-4 glass-panel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Vývoj tržeb</h5>
                             <span class="badge bg-light text-muted">Posledních 10 objednávek</span>
@@ -247,8 +247,8 @@ try {
 
                 <!-- Notifications / Stock -->
                 <div class="col-lg-4">
-                    <div class="kjd-card h-100 border-0 shadow-sm p-0 overflow-hidden">
-                        <div class="p-4 border-bottom bg-light-subtle">
+                    <div class="kjd-card h-100 border-0 shadow-sm p-0 overflow-hidden glass-panel">
+                        <div class="p-4 border-bottom bg-light-subtle glass-panel">
                             <h5 class="fw-bold mb-0">Sklad a systém</h5>
                         </div>
                         <div class="list-group list-group-flush">
@@ -284,14 +284,14 @@ try {
             </div>
 
             <!-- Recent Orders Table -->
-            <div class="kjd-card mt-4 border-0 shadow-sm overflow-hidden">
-                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+            <div class="kjd-card mt-4 border-0 shadow-sm overflow-hidden glass-panel">
+                <div class="card-header border-bottom p-4 d-flex justify-content-between align-items-center glass-panel">
                     <h5 class="fw-bold mb-0">Nedávné objednávky</h5>
                     <a href="admin_orders.php" class="btn btn-sm btn-light fw-medium">Zobrazit vše</a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light text-muted small text-uppercase">
+                    <table class="table table-hover align-middle mb-0 glass-table">
+                        <thead class="text-muted small text-uppercase">
                             <tr>
                                 <th class="ps-4">ID</th>
                                 <th>Zákazník</th>
